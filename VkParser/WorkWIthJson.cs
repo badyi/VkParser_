@@ -23,17 +23,13 @@ namespace VkParser
             DataContractJsonSerializer jsonFormatter = new DataContractJsonSerializer(typeof(List<T>));
 
             FileStream setlock = new FileStream(i.ToString() + ".locker", FileMode.Create);
-            FileStream setlock2 = new FileStream(i.ToString() + ".PPlocker", FileMode.Create);
-
             using (FileStream f = new FileStream(nameFile, FileMode.Create))
             {
                 jsonFormatter.WriteObject(f, input);
             }
 
             setlock.Close();
-            setlock2.Close();
             completed = true;
-            File.Delete(i.ToString() + ".PPlocker");
             File.Delete(i.ToString() + ".locker");
         }
 

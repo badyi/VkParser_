@@ -143,12 +143,14 @@ namespace VkParser
         {
             string nameFile = "f" + i.ToString() + ".json";
 
+
             FileStream setlock = new FileStream(i.ToString() + ".locker", FileMode.Create);
-            
+
             using (FileStream f = new FileStream(nameFile, FileMode.OpenOrCreate))
             {
             }
             setlock.Close();
+
             File.Delete(i.ToString() + ".locker");
         }
 

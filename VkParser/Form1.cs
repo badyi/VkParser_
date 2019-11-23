@@ -12,6 +12,22 @@ using System.Windows.Forms;
 
 namespace VkParser
 {
+    public class Locker
+    {
+        public bool isLock { get; set; }
+        public Locker()
+        {
+            isLock = false;
+        }
+        public void Lock()
+        {
+            isLock = true;
+        }
+        public void unlock()
+        {
+            isLock = false;
+        }
+    }
     public partial class Form1 : Form
     {
         Parser data;
@@ -19,21 +35,9 @@ namespace VkParser
         System.Windows.Forms.Timer timer;
         Planner planner = new Planner();
 
-        public class locker
-        {
-            public bool isLock { get; set; }
-            public locker()
-            {
-                isLock = false;
-            }
-            public void Lock(){
-                isLock = true;
-            }
-            public void unlock()
-            {
-                isLock = false;
-            }
-        }
+        Locker locker1 = new Locker();
+        Locker locker2 = new Locker();
+        Locker locker3 = new Locker();
 
         static bool completed1 = false;
         static bool completed2 = false;
@@ -139,17 +143,18 @@ namespace VkParser
             }
         }
 
-        public void interferingFunc(int i)
+        public void interferingFunc(int i, ref Locker locker)
         {
             string nameFile = "f" + i.ToString() + ".json";
-
-            FileStream setlock = new FileStream(i.ToString() + ".locker", FileMode.Create);
+            locker.Lock();
+            //FileStream setlock = new FileStream(i.ToString() + ".locker", FileMode.Create);
             
             using (FileStream f = new FileStream(nameFile, FileMode.OpenOrCreate))
             {
             }
-            setlock.Close();
-            File.Delete(i.ToString() + ".locker");
+            locker.unlock();
+            //setlock.Close();
+            // File.Delete(i.ToString() + ".locker");
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -169,7 +174,7 @@ namespace VkParser
             Thread t3;
             Thread.Sleep(100);
             //if (!planner.MonitorOS())
-                if (!planner.check()) // checks existing of locker files
+                if (!locker1.isLock && !locker2.isLock && !locker3.isLock) // checks existing of locker files
                 {
                     if (completed1 && completed2 && completed3) { 
                         data.RefreshAndParse();
@@ -184,34 +189,34 @@ namespace VkParser
 
                     if (planner.queue[planner.GetCurrent()].f1 == 1 && !completed1) // block for statring first thread
                     {
-                        t1 = new Thread(() => WorkWithJson.save(data.get_list_texts(), 1, ref completed1));
+                        t1 = new Thread(() => WorkWithJson.save(data.get_list_texts(), 1, ref completed1,ref locker1));
                         t1.Start();
                     }
                     else if (planner.queue[planner.GetCurrent()].f1 == 4)
                     {
-                        t1 = new Thread(() => interferingFunc(1));
+                        t1 = new Thread(() => interferingFunc(1,ref locker1));
                         t1.Start();
                     }
 
                     if (planner.queue[planner.GetCurrent()].f2 == 2 && !completed2) // block for statring second thread
                     { 
-                        t2 = new Thread(() => WorkWithJson.save(data.get_list_links(), 2, ref completed2));
+                        t2 = new Thread(() => WorkWithJson.save(data.get_list_links(), 2, ref completed2, ref locker2));
                         t2.Start();
                     }
                     else if (planner.queue[planner.GetCurrent()].f2 == 4)
                     {
-                        t2 = new Thread(() => interferingFunc(2));
+                        t2 = new Thread(() => interferingFunc(2,ref locker2));
                         t2.Start();
                     }
 
                     if (planner.queue[planner.GetCurrent()].f3 == 3 && !completed3) // block for statring third thread
                     {
-                        t3 = new Thread(() => WorkWithJson.save(data.get_list_imgs(), 3, ref completed3));
+                        t3 = new Thread(() => WorkWithJson.save(data.get_list_imgs(), 3, ref completed3, ref locker3));
                         t3.Start();
                     }
                     else if (planner.queue[planner.GetCurrent()].f3 == 4)
                     {
-                        t3 = new Thread(() => interferingFunc(3));
+                        t3 = new Thread(() => interferingFunc(3,ref locker3));
                         t3.Start();
                     }
                 }

@@ -16,13 +16,13 @@ namespace VkParser
         {
         }
 
-        public static void save<T>(List<T> input, int i,ref bool completed)
+        public static void save<T>(List<T> input, int i,ref bool completed, ref Locker locker)
         {
             string nameFile = "f" + i.ToString() + ".json";
-
+            locker.Lock();
             DataContractJsonSerializer jsonFormatter = new DataContractJsonSerializer(typeof(List<T>));
 
-            FileStream setlock = new FileStream(i.ToString() + ".locker", FileMode.Create);
+            //FileStream setlock = new FileStream(i.ToString() + ".locker", FileMode.Create);
             FileStream setlock2 = new FileStream(i.ToString() + ".PPlocker", FileMode.Create);
 
             using (FileStream f = new FileStream(nameFile, FileMode.Create))
@@ -30,11 +30,12 @@ namespace VkParser
                 jsonFormatter.WriteObject(f, input);
             }
 
-            setlock.Close();
+            //setlock.Close();
+            locker.unlock();
             setlock2.Close();
             completed = true;
             File.Delete(i.ToString() + ".PPlocker");
-            File.Delete(i.ToString() + ".locker");
+            //File.Delete(i.ToString() + ".locker");
         }
 
         public void deleteJsonFiles()

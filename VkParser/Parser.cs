@@ -10,7 +10,6 @@ namespace VkParser
 {
     class Parser
     {
-        static SortedSet<string> addedID;
         private List<TextPost> textPostList;
         private List<LinkPost> linksPostList;
         private List<ImgPost> imgsPostList;
@@ -18,7 +17,6 @@ namespace VkParser
 
         public Parser()
         {
-            addedID = new SortedSet<string>();
             textPostList = new List<TextPost>();
             linksPostList = new List<LinkPost>();
             imgsPostList = new List<ImgPost>();
@@ -58,7 +56,6 @@ namespace VkParser
 
         public void Parse()
         {
-
             List<string> idList = (from item in chr.FindElements(By.ClassName("post_link")) where item.Displayed select item.GetAttribute("href").Remove(0, 20)).ToList();
 
             for (int i = 0; i < idList.Count; i++)
@@ -90,14 +87,35 @@ namespace VkParser
 
         public void RefreshAndParse()
         {
-            chr.Navigate().Refresh();
-            Parse();
+            textPostList = new List<TextPost>();
+            linksPostList = new List<LinkPost>();
+            imgsPostList = new List<ImgPost>();
+
+                chr.Navigate().Refresh();
+                Parse();
+
         }
+
+        //private int tryNum = 0;
+
+        //public void RefreshAndParse()
+        //{
+        //    try
+        //    {
+        //        RefreshAndParse();
+        //        tryNum = 0;
+        //    }
+        //    catch
+        //    {
+        //        tryNum++;
+        //    }
+        //}
 
         public void RefreshAndParse(ref bool completed1, ref bool completed2, ref bool completed3) {
             completed1 = false;
             completed2 = false;
             completed3 = false;
+
             chr.Navigate().Refresh();
             Parse();
         }

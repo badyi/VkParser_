@@ -10,32 +10,62 @@ namespace VkParser
 {
     class WorkWithJson
     {
-
-
         public WorkWithJson()
         {
         }
 
-        public static void save<T>(List<T> input, int i,ref bool completed, ref Locker locker)
+        private static List<T> addExistingData<T>(string nameFile, int i) {
+            if (System.IO.File.Exists(nameFile)) {
+                return read<T>(i);
+            }
+            return new List<T>();
+        }
+
+        public static void save<T>(List<T> input, int i,ref bool completed, ref Locker locker, ref bool processTurn)
         {
             string nameFile = "f" + i.ToString() + ".json";
-            locker.Lock();
-            DataContractJsonSerializer jsonFormatter = new DataContractJsonSerializer(typeof(List<T>));
+            string lockString = processTurn ? i.ToString() + ".locker" : i.ToString() + ".WPlocker";
+            FileStream setlock = new FileStream(lockString, FileMode.Create);
 
-            //FileStream setlock = new FileStream(i.ToString() + ".locker", FileMode.Create);
-            FileStream setlock2 = new FileStream(i.ToString() + ".PPlocker", FileMode.Create);
-
-            using (FileStream f = new FileStream(nameFile, FileMode.Create))
+            if (!processTurn)
             {
-                jsonFormatter.WriteObject(f, input);
+                locker.Lock();
+                input.AddRange(addExistingData<T>(nameFile, i)); // add old data if win serv didnt read them
+
+                DataContractJsonSerializer jsonFormatter = new DataContractJsonSerializer(typeof(List<T>));
+
+                using (FileStream f = new FileStream(nameFile, FileMode.Create))
+                {
+                    jsonFormatter.WriteObject(f, input);
+                }
+
+                completed = true;
+                locker.Unlock();
             }
 
-            //setlock.Close();
-            locker.unlock();
-            setlock2.Close();
-            completed = true;
-            File.Delete(i.ToString() + ".PPlocker");
-            //File.Delete(i.ToString() + ".locker");
+            setlock.Close();
+            File.Delete(lockString);
+        }
+
+        public static void interferingFunc(int i, ref Locker locker, ref bool processTurn)
+        {
+            string nameFile = "f" + i.ToString() + ".json";
+            string lockString = processTurn ? i.ToString() + ".locker" : i.ToString() + ".WPlocker";
+            FileStream setlock = new FileStream(lockString, FileMode.Create);
+
+            if (!processTurn)
+            {
+                locker.Lock();
+
+                using (FileStream f = new FileStream(nameFile, FileMode.OpenOrCreate))
+                {
+                }
+
+                locker.Unlock();
+            }
+
+            setlock.Close();
+            File.Delete(lockString);
         }
 
         public void deleteJsonFiles()
@@ -45,16 +75,25 @@ namespace VkParser
             File.Delete(@"f3.json");
         }
 
-        public T read<T>(int i, object locker)
+        public static List<T> read<T>(int i)
         {
-            DataContractJsonSerializer jsonFormatter = new DataContractJsonSerializer(typeof(T));
+            DataContractJsonSerializer jsonFormatter = new DataContractJsonSerializer(typeof(List<T>));
+            
+            string file_path = @"C:\Users\badyi\source\repos\OS_Homework5\VkParser\VkParser\bin\Debug\" + "f" + i.ToString() + ".json";
 
-            string file_name = "f" + i.ToString() + ".json";
-
-            using (FileStream file = new FileStream(file_name, FileMode.OpenOrCreate))
+            using (FileStream file = new FileStream(file_path, FileMode.Open))
             {
-                T dict = (T)jsonFormatter.ReadObject(file);
-                return dict;
+                try
+                {
+                    List<T> data = (List<T>)jsonFormatter.ReadObject(file);
+
+                    return data;
+                }
+                catch
+                {
+                    // if json file is empty
+                    return new List<T>();
+                }
             }
         }
     }

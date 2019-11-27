@@ -63,9 +63,12 @@
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
     <Compile Include="Parser.cs" />
+    <Compile Include="Planner.cs" />
     <Compile Include="PostElements.cs" />
+    <Compile Include="ProcessPlanner.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="queueMember.cs" />
     <Compile Include="WorkWIthJson.cs" />
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
